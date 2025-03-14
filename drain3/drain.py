@@ -3,6 +3,7 @@
 # Based on https://github.com/logpai/logparser/blob/master/logparser/Drain/Drain.py by LogPAI team
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from typing import cast, Collection, IO, Iterable, MutableMapping, MutableSequence, Optional, Sequence, Tuple, \
     TYPE_CHECKING, TypeVar, Union
 
@@ -12,12 +13,15 @@ from drain3.simple_profiler import Profiler, NullProfiler
 
 
 class LogCluster:
-    __slots__ = ["log_template_tokens", "cluster_id", "size"]
+    __slots__ = ["log_template_tokens", "cluster_id", "size", "last_seen", "prev_last_seen"]
 
     def __init__(self, log_template_tokens: Iterable[str], cluster_id: int) -> None:
         self.log_template_tokens = tuple(log_template_tokens)
         self.cluster_id = cluster_id
         self.size = 1
+        self.last_seen = datetime.now()
+        self.prev_last_seen = None
+
 
     def get_template(self) -> str:
         return ' '.join(self.log_template_tokens)
@@ -215,6 +219,8 @@ class DrainBase(ABC):
             else:
                 match_cluster.log_template_tokens = tuple(new_template_tokens)
                 update_type = "cluster_template_changed"
+            match_cluster.prev_last_seen = match_cluster.last_seen
+            match_cluster.last_seen = datetime.now()
             match_cluster.size += 1
             # Touch cluster to update its state in the cache.
             # noinspection PyStatementEffect

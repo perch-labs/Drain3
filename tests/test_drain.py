@@ -94,6 +94,7 @@ class DrainTest(unittest.TestCase):
         for entry in entries:
             cluster, change_type = model.add_log_message(entry)
             actual.append(cluster.get_template())
+            self.assertIsNotNone(cluster.last_seen)
 
         self.assertListEqual(list(map(str.strip, expected)), actual)
         self.assertEqual(8, model.get_total_cluster_size())
@@ -131,6 +132,7 @@ class DrainTest(unittest.TestCase):
         for entry in entries:
             cluster, change_type = model.add_log_message(entry)
             actual.append(cluster.get_template())
+            self.assertIsNotNone(cluster.last_seen)
 
         self.assertListEqual(list(map(str.strip, expected)), actual)
         self.assertEqual(1, model.get_total_cluster_size())
@@ -179,6 +181,7 @@ class DrainTest(unittest.TestCase):
         for entry in entries:
             cluster, _ = model.add_log_message(entry)
             actual.append(cluster.get_template())
+            self.assertIsNotNone(cluster.last_seen)
 
         self.assertListEqual(list(map(str.strip, expected)), actual)
         self.assertEqual(4, model.get_total_cluster_size())
@@ -227,6 +230,7 @@ class DrainTest(unittest.TestCase):
         for entry in entries:
             cluster, _ = model.add_log_message(entry)
             actual.append(cluster.get_template())
+            self.assertIsNotNone(cluster.last_seen)
 
         self.assertListEqual(list(map(str.strip, expected)), actual)
         # self.assertEqual(5, model.get_total_cluster_size())

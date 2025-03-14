@@ -146,6 +146,7 @@ class TemplateMiner:
             "cluster_id": cluster.cluster_id,
             "cluster_size": cluster.size,
             "template_mined": cluster.get_template(),
+            "prev_last_seen": cluster.prev_last_seen,
             "cluster_count": len(self.drain.clusters)
         }
 

@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: MIT
 
+from datetime import datetime
+from time import sleep
 import unittest
 
 from drain3.drain import Drain, LogCluster
@@ -276,3 +278,13 @@ class DrainTest(unittest.TestCase):
 
         # Test for equal lengths input vectors
         self.assertRaises(AssertionError, model.create_template, seq1, ["aa"])
+
+    def test_prev_last_timestamps(self):
+        model = Drain()
+        timestamp = datetime.now()
+        res = model.add_log_message("aa aa bb", timestamp)
+        self.assertIsNone(res[0].prev_seen)
+        res = model.add_log_message("aa aa bb", timestamp)
+        self.assertIsNone(res[0].prev_seen)
+        res = model.add_log_message("aa aa bb", datetime.now())
+        self.assertIsNotNone(res[0].prev_seen)

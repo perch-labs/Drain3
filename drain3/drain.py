@@ -13,14 +13,14 @@ from drain3.simple_profiler import Profiler, NullProfiler
 
 
 class LogCluster:
-    __slots__ = ["log_template_tokens", "cluster_id", "size", "last_seen", "prev_last_seen"]
+    __slots__ = ["log_template_tokens", "cluster_id", "size", "last_seen", "prev_seen"]
 
-    def __init__(self, log_template_tokens: Iterable[str], cluster_id: int) -> None:
+    def __init__(self, log_template_tokens: Iterable[str], cluster_id: int, timestamp: datetime) -> None:
         self.log_template_tokens = tuple(log_template_tokens)
         self.cluster_id = cluster_id
         self.size = 1
-        self.last_seen = datetime.now()
-        self.prev_last_seen = None
+        self.last_seen = timestamp
+        self.prev_seen = None
 
 
     def get_template(self) -> str:
@@ -189,7 +189,7 @@ class DrainBase(ABC):
         content_tokens = content.split()
         return content_tokens
 
-    def add_log_message(self, content: str) -> Tuple[LogCluster, str]:
+    def add_log_message(self, content: str, timestamp: datetime = datetime.now()) -> Tuple[LogCluster, str]:
         content_tokens = self.get_content_as_tokens(content)
 
         if self.profiler:
@@ -204,7 +204,7 @@ class DrainBase(ABC):
                 self.profiler.start_section("create_cluster")
             self.clusters_counter += 1
             cluster_id = self.clusters_counter
-            match_cluster = LogCluster(content_tokens, cluster_id)
+            match_cluster = LogCluster(content_tokens, cluster_id, timestamp)
             self.id_to_cluster[cluster_id] = match_cluster
             self.add_seq_to_prefix_tree(self.root_node, match_cluster)
             update_type = "cluster_created"
@@ -219,8 +219,9 @@ class DrainBase(ABC):
             else:
                 match_cluster.log_template_tokens = tuple(new_template_tokens)
                 update_type = "cluster_template_changed"
-            match_cluster.prev_last_seen = match_cluster.last_seen
-            match_cluster.last_seen = datetime.now()
+            if match_cluster.last_seen != timestamp:
+                match_cluster.prev_seen = match_cluster.last_seen
+                match_cluster.last_seen = timestamp
             match_cluster.size += 1
             # Touch cluster to update its state in the cache.
             # noinspection PyStatementEffect

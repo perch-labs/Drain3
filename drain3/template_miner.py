@@ -5,6 +5,7 @@ import logging
 import re
 import time
 import zlib
+from datetime import datetime
 from typing import Optional, Mapping, MutableMapping, NamedTuple, Sequence, Tuple, Union
 
 import jsonpickle  # type: ignore[import]
@@ -131,7 +132,7 @@ class TemplateMiner:
 
         return None
 
-    def add_log_message(self, log_message: str) -> Mapping[str, Union[str, int]]:
+    def add_log_message(self, log_message: str, timestamp: datetime = datetime.now()) -> Mapping[str, Union[str, int]]:
         self.profiler.start_section("total")
 
         self.profiler.start_section("mask")
@@ -139,14 +140,15 @@ class TemplateMiner:
         self.profiler.end_section()
 
         self.profiler.start_section("drain")
-        cluster, change_type = self.drain.add_log_message(masked_content)
+        cluster, change_type = self.drain.add_log_message(masked_content, timestamp)
         self.profiler.end_section("drain")
         result: Mapping[str, Union[str, int]] = {
             "change_type": change_type,
             "cluster_id": cluster.cluster_id,
             "cluster_size": cluster.size,
             "template_mined": cluster.get_template(),
-            "prev_last_seen": cluster.prev_last_seen,
+            "last_seen": cluster.last_seen,
+            "prev_seen": cluster.prev_seen,
             "cluster_count": len(self.drain.clusters)
         }
 

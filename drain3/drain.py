@@ -13,10 +13,11 @@ from drain3.simple_profiler import Profiler, NullProfiler
 
 
 class LogCluster:
-    __slots__ = ["log_template_tokens", "cluster_id", "size", "last_seen", "prev_seen"]
+    __slots__ = ["log_template_tokens", "prev_log_template_tokens", "cluster_id", "size", "last_seen", "prev_seen"]
 
     def __init__(self, log_template_tokens: Iterable[str], cluster_id: int, timestamp: datetime) -> None:
         self.log_template_tokens = tuple(log_template_tokens)
+        self.prev_log_template_tokens = None
         self.cluster_id = cluster_id
         self.size = 1
         self.last_seen = timestamp
@@ -25,6 +26,10 @@ class LogCluster:
 
     def get_template(self) -> str:
         return ' '.join(self.log_template_tokens)
+
+    def get_previous_template(self) -> Union[str,None]:
+        return ' '.join(self.prev_log_template_tokens) \
+            if self.prev_log_template_tokens else None
 
     def __str__(self) -> str:
         return f"ID={str(self.cluster_id).ljust(5)} : size={str(self.size).ljust(10)}: {self.get_template()}"
@@ -217,6 +222,7 @@ class DrainBase(ABC):
             if tuple(new_template_tokens) == match_cluster.log_template_tokens:
                 update_type = "none"
             else:
+                match_cluster.prev_log_template_tokens = match_cluster.log_template_tokens
                 match_cluster.log_template_tokens = tuple(new_template_tokens)
                 update_type = "cluster_template_changed"
             if match_cluster.last_seen != timestamp:

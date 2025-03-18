@@ -132,7 +132,7 @@ class TemplateMiner:
 
         return None
 
-    def add_log_message(self, log_message: str, timestamp: datetime = datetime.now()) -> Mapping[str, Union[str, int]]:
+    def add_log_message(self, log_message: str, timestamp: datetime = datetime.now()) -> Mapping[str, Union[str, int, datetime]]:
         self.profiler.start_section("total")
 
         self.profiler.start_section("mask")
@@ -142,11 +142,12 @@ class TemplateMiner:
         self.profiler.start_section("drain")
         cluster, change_type = self.drain.add_log_message(masked_content, timestamp)
         self.profiler.end_section("drain")
-        result: Mapping[str, Union[str, int]] = {
+        result: Mapping[str, Union[str, int, datetime]] = {
             "change_type": change_type,
             "cluster_id": cluster.cluster_id,
             "cluster_size": cluster.size,
             "template_mined": cluster.get_template(),
+            "prev_template": cluster.get_previous_template(),
             "last_seen": cluster.last_seen,
             "prev_seen": cluster.prev_seen,
             "cluster_count": len(self.drain.clusters)
